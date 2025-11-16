@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Colloquium — Futuristic Split + Dashboard (Working)</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Poppins,system-ui}
+html,body{height:100%}
+body{background:#0d001a;color:#fff;overflow:hidden;display:flex}
+
+/* === SPLIT LOGIN SCREEN === */
+.split{display:flex;width:100%;height:100vh}
+.left{width:50%;display:flex;justify-content:center;align-items:center;position:relative}
+
+.glass-card{width:360px;padding:32px;border-radius:22px;background:rgba(255,255,255,0.08);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.18);box-shadow:0 8px 40px rgba(0,0,0,0.4);position:relative;z-index:5}
+.glass-card h2{text-align:center;margin-bottom:20px;color:#e7dfff}
+.glass-card input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;background:#fff;color:#000}
+.glass-card button{width:100%;padding:12px;border-radius:10px;border:none;background:#8b2df5;color:#fff;font-weight:600;margin-top:10px;cursor:pointer}
+.glass-card button:hover{background:#7a0df0}
+.glass-card .link{text-align:center;margin-top:10px;color:#d9b8ff;cursor:pointer}
+
+/* LEFT SIDE FLOATING BLOBS */
+.left .blob{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(175,70,255,0.5),rgba(120,0,190,0.2));filter:blur(80px);animation:float 16s infinite ease-in-out}
+.blob.one{top:-60px;left:-80px}
+.blob.two{bottom:-80px;right:-60px;animation-duration:22s}
+.blob.three{top:40%;left:30%;animation-duration:28s;width:280px;height:280px}
+
+@keyframes float{0%{transform:translate(0,0)}50%{transform:translate(40px,-50px)}100%{transform:translate(0,0)}}
+
+/* RIGHT: Futuristic Text */
+.right{width:50%;display:flex;flex-direction:column;justify-content:center;padding-left:60px;text-align:left}
+.right h1{font-size:64px;font-weight:900;color:#f4e8ff;text-shadow:0 8px 30px rgba(0,0,0,0.4)}
+.right p{font-size:20px;margin-top:10px;color:#c8b3ff}
+
+/* SIGNUP POPUP */
+#signupBox{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:999}
+.signup-card{width:360px;padding:30px;border-radius:20px;background:rgba(255,255,255,0.08);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.18)}
+.signup-card h2{text-align:center;margin-bottom:12px;color:#f3e7ff}
+.signup-card input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;background:#fff;color:#000}
+.signup-card button{width:100%;padding:12px;border:none;border-radius:10px;background:#8b2df5;color:#fff;margin-top:10px;font-weight:600;cursor:pointer}
+.signup-card button:hover{background:#7a0df0}
+
+/* DASHBOARD */
+#dashboard{display:none;position:absolute;inset:0;background:#120022;padding:20px;overflow-y:auto}
+.dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.dashboard-header h2{font-size:24px}
+.logout{background:#e41e26;border:none;color:#fff;padding:10px 16px;border-radius:8px;cursor:pointer}
+
+.columns{display:grid;grid-template-columns:1fr 320px;gap:20px}
+.card{background:rgba(255,255,255,0.07);padding:16px;border-radius:14px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.card h3{margin-bottom:10px;font-size:20px}
+textarea{width:100%;border:none;border-radius:10px;padding:10px;background:#fff;color:#000}
+#communityList li{list-style:none;padding:10px;border-radius:10px;background:rgba(255,255,255,0.05);cursor:pointer;margin-top:8px}
+#communityList li:hover{background:rgba(255,255,255,0.12)}
+.messages{height:200px;overflow-y:auto;background:rgba(255,255,255,0.05);padding:10px;border-radius:10px}
+.msg{background:rgba(255,255,255,0.08);padding:8px;border-radius:8px;margin-bottom:8px}
+
+/* small responsive */
+@media (max-width:900px){
+  .split{flex-direction:column;height:auto}
+  .left,.right{width:100%}
+  #dashboard{position:static;height:auto}
+  .columns{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="split" id="loginScreen">
+  <div class="left">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="blob three"></div>
+
+    <div class="glass-card">
+      <h2>Welcome Back</h2>
+      <input id="email" placeholder="Email or phone number">
+      <input id="password" type="password" placeholder="Password">
+      <button id="loginBtn">Log In</button>
+      <div id="forgotPassword" class="link">Forgot your password?</div>
+      <button id="createAccountBtn" style="background:#5920b8;margin-top:14px">Create an Account</button>
+    </div>
+  </div>
+
+  <div class="right">
+    <h1>Colloquium</h1>
+    <p>Empowering the future of collaboration with next-gen design.</p>
+  </div>
+</div>
+
+<!-- SIGNUP POPUP -->
+<div id="signupBox">
+  <div class="signup-card">
+    <h2>Create an account</h2>
+    <input id="signupName" placeholder="Full Name">
+    <input id="signupEmail" placeholder="Email">
+    <input id="signupPass" type="password" placeholder="Password">
+    <input id="signupConfirm" type="password" placeholder="Confirm password">
+    <button id="signupSubmit">Sign Up</button>
+    <button id="signupClose" style="background:#5920b8;margin-top:10px">Back</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" aria-hidden="true">
+  <div class="dashboard-header">
+    <h2>Welcome, <span id="userEmail"></span>!</h2>
+    <div>
+      <button class="logout" id="logoutBtn">Log Out</button>
+    </div>
+  </div>
+
+  <div class="columns">
+
+    <!-- FEED + CREATE POST -->
+    <div>
+      <div class="card">
+        <h3>Feed</h3>
+        <div id="feed"></div>
+      </div>
+
+      <div class="card">
+        <h3>Create Post</h3>
+        <textarea id="postContent" rows="3" placeholder="What's on your mind?"></textarea>
+        <button id="postBtn" style="margin-top:10px;width:100%;padding:12px;background:#8b2df5;border:none;border-radius:10px;color:#fff;font-weight:600;cursor:pointer">Post</button>
+      </div>
+    </div>
+
+    <!-- GROUPS + CHAT -->
+    <div>
+      <div class="card">
+        <h3>Study Groups</h3>
+        <button id="createGroup" style="width:100%;padding:10px;background:#6d1dd8;border:none;color:#fff;border-radius:10px;font-weight:600;cursor:pointer">Create Group</button>
+        <ul id="communityList"></ul>
+      </div>
+
+      <div class="card">
+        <h3 id="chatTitle">Community Chat</h3>
+        <div class="messages" id="messages"></div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <input id="chatInput" placeholder="Type a message..." style="flex:1;padding:10px;border:none;border-radius:10px;background:#fff;color:#000;">
+          <button id="sendMsg" style="padding:10px 14px;background:#8b2df5;border:none;border-radius:10px;color:#fff;font-weight:600;cursor:pointer">Send</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ========= FULL WORKING JS ========= */
+
+/* Storage initialization */
+if(!localStorage.getItem('users')) {
+  localStorage.setItem('users', JSON.stringify([
+    { name: 'Demo User', email: 'demo@colloquium.com', password: 'password' }
+  ]));
+}
+if(!localStorage.getItem('posts')) localStorage.setItem('posts', JSON.stringify([]));
+if(!localStorage.getItem('communities')) localStorage.setItem('communities', JSON.stringify([]));
+if(!localStorage.getItem('messages')) localStorage.setItem('messages', JSON.stringify({}));
+
+/* Helpers */
+const $ = (id)=>document.getElementById(id);
+function getUsers(){ return JSON.parse(localStorage.getItem('users')||'[]'); }
+function saveUsers(u){ localStorage.setItem('users', JSON.stringify(u)); }
+function getPosts(){ return JSON.parse(localStorage.getItem('posts')||'[]'); }
+function savePosts(p){ localStorage.setItem('posts', JSON.stringify(p)); }
+function getCommunities(){ return JSON.parse(localStorage.getItem('communities')||'[]'); }
+function saveCommunities(c){ localStorage.setItem('communities', JSON.stringify(c)); }
+function getMessages(){ return JSON.parse(localStorage.getItem('messages')||'{}'); }
+function saveMessages(m){ localStorage.setItem('messages', JSON.stringify(m)); }
+
+let currentUser = null;
+let currentCommunity = null;
+
+/* --- UI elements --- */
+const loginScreen = $('loginScreen');
+const dashboard = $('dashboard');
+const signupBox = $('signupBox');
+
+/* --- Render helpers --- */
+function renderFeed(){
+  const feed = $('feed');
+  feed.innerHTML = '';
+  const posts = getPosts().slice().reverse(); // show newest first
+  posts.forEach((p, idx) => {
+    const i = posts.length - 1 - idx; // original index
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>${p.user}</strong>
+        <small style="opacity:0.8">Likes: ${p.likes}</small>
+      </div>
+      <p style="margin-top:8px">${escapeHtml(p.content)}</p>
+      <div style="margin-top:8px"><button class="small-btn" data-like-index="${i}">Like</button></div>
+    `;
+    feed.appendChild(div);
+  });
+  // attach like handlers
+  document.querySelectorAll('[data-like-index]').forEach(btn=>{
+    btn.onclick = (e)=>{
+      const idx = parseInt(btn.getAttribute('data-like-index'),10);
+      const posts = getPosts();
+      posts[idx].likes = (posts[idx].likes || 0) + 1;
+      savePosts(posts);
+      renderFeed();
+    };
+  });
+}
+
+function renderCommunities(){
+  const list = $('communityList');
+  list.innerHTML = '';
+  const comms = getCommunities();
+  comms.forEach(c=>{
+    const li = document.createElement('li');
+    li.textContent = c;
+    li.onclick = ()=>openCommunity(c);
+    list.appendChild(li);
+  });
+}
+
+function renderMessages(){
+  const msgsDiv = $('messages');
+  msgsDiv.innerHTML = '';
+  if(!currentCommunity) return;
+  const msgs = getMessages();
+  const arr = msgs[currentCommunity] || [];
+  arr.forEach(m=>{
+    const d = document.createElement('div');
+    d.className = 'msg';
+    d.textContent = `${m.user}: ${m.text}`;
+    msgsDiv.appendChild(d);
+  });
+  msgsDiv.scrollTop = msgsDiv.scrollHeight;
+}
+
+/* Escape simple HTML in posts */
+function escapeHtml(s){
+  return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+}
+
+/* --- Auth & UI flow --- */
+function showDashboardFor(userEmail){
+  currentUser = userEmail;
+  $('userEmail').textContent = userEmail;
+  loginScreen.style.display = 'none';
+  signupBox.style.display = 'none';
+  dashboard.style.display = 'block';
+  dashboard.setAttribute('aria-hidden','false');
+  renderFeed();
+  renderCommunities();
+  renderMessages();
+}
+
+function showLogin(){
+  currentUser = null;
+  $('email').value = '';
+  $('password').value = '';
+  loginScreen.style.display = 'flex';
+  dashboard.style.display = 'none';
+  signupBox.style.display = 'none';
+  dashboard.setAttribute('aria-hidden','true');
+}
+
+/* --- Events: Login / Signup / Forgot / Logout --- */
+$('loginBtn').addEventListener('click', function(){
+  const email = $('email').value.trim();
+  const pass = $('password').value;
+  if(!email || !pass) return alert('Please fill email and password.');
+  const user = getUsers().find(u=>u.email === email && u.password === pass);
+  if(!user) return alert('Invalid email or password.');
+  showDashboardFor(user.email);
+});
+
+$('createAccountBtn').addEventListener('click', ()=> { signupBox.style.display = 'flex'; });
+$('signupClose').addEventListener('click', ()=> { signupBox.style.display = 'none'; });
+
+$('signupSubmit').addEventListener('click', function(){
+  const name = $('signupName').value.trim();
+  const email = $('signupEmail').value.trim();
+  const pass = $('signupPass').value;
+  const conf = $('signupConfirm').value;
+  if(!email || !pass) return alert('Please provide email and password.');
+  if(pass !== conf) return alert('Passwords do not match.');
+  const users = getUsers();
+  if(users.some(u=>u.email === email)) return alert('User already exists.');
+  users.push({name: name || email, email: email, password: pass});
+  saveUsers(users);
+  alert('Account created. You may now log in.');
+  signupBox.style.display = 'none';
+});
+
+$('forgotPassword').addEventListener('click', function(){
+  const email = prompt('Enter your email to reset password:');
+  if(!email) return;
+  const users = getUsers();
+  const user = users.find(u=>u.email === email);
+  if(!user) return alert('No account found with that email.');
+  const np = prompt('Enter your new password:');
+  if(!np) return;
+  user.password = np;
+  saveUsers(users);
+  alert('Password updated. You may now log in.');
+});
+
+$('logoutBtn').addEventListener('click', function(){
+  showLogin();
+});
+
+/* --- Posts --- */
+$('postBtn').addEventListener('click', function(){
+  const content = $('postContent').value.trim();
+  if(!content) return alert('Post cannot be empty.');
+  const posts = getPosts();
+  posts.push({ user: currentUser || 'Anonymous', content: content, likes: 0 });
+  savePosts(posts);
+  $('postContent').value = '';
+  renderFeed();
+});
+
+/* --- Communities --- */
+$('createGroup').addEventListener('click', function(){
+  const name = prompt('Enter study group name:');
+  if(!name) return;
+  const comms = getCommunities();
+  if(comms.includes(name)) return alert('Group already exists.');
+  comms.push(name);
+  saveCommunities(comms);
+  renderCommunities();
+});
+
+/* --- Chat --- */
+$('sendMsg').addEventListener('click', function(){
+  const txt = $('chatInput').value.trim();
+  if(!txt) return;
+  if(!currentCommunity) return alert('Select a community first from the list.');
+  const msgs = getMessages();
+  if(!msgs[currentCommunity]) msgs[currentCommunity] = [];
+  msgs[currentCommunity].push({ user: currentUser || 'Anonymous', text: txt });
+  saveMessages(msgs);
+  $('chatInput').value = '';
+  renderMessages();
+});
+
+/* When opening a community */
+function openCommunity(name){
+  currentCommunity = name;
+  const el = $('chatTitle');
+  if(el) el.textContent = name + ' Chat';
+  renderMessages();
+}
+
+/* Init render on page load */
+(function init(){
+  renderFeed();
+  renderCommunities();
+})();
+</script>
+
+</body>
+</html>
